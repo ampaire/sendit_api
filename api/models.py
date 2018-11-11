@@ -1,15 +1,35 @@
-from flask import Flask, request, jsonify
 import datetime
-from api import app
-
-parcels = []
 
 
+class Users:
+    users = []
+
+    def __init__(self, name, email, password):
+        if (username != '' and email != ''
+                and password != '') or (username is not None
+                                        and email is not None
+                                        and password is not None):
+            self.userId = userId
+            self.name = name
+            self.email = email
+            self.password = password
+        else:
+            raise ValueError(
+                "make sure the name, email and password fields are filled")
 
 
-def delete_parcel():
-    parcel = [parcel for parcel in parcels if parcel['deliveryId'] == deliveryId]
-    if len(parcel) == 0:
-        return ("Failed to Delete! Cannot delete non-existent item")
-    parcels.remove(parcel[0])
-    return jsonify({'parcels': parcels, "message": 'Successfully Deleted'}), 200
+class Parcels:
+    parcels = []
+
+    def __init__(self, pickup_location, destination, recipient, description):
+        if (pickup_location != '' and destination != ''
+                and recipient != '' and description != "" and status != "") or (pickup_location is not None
+                                                                                and destination is not None
+                                                                                and recipient is not None
+                                                                                and description is not None
+                                                                                and status is not None):
+        self. parcelId = parcelId
+        self.pickup_location = pickup_location
+        self.destination = destination
+        self.recipient = recipient
+        self.description = description
