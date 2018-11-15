@@ -1,5 +1,8 @@
 # SendIt
 
+[![Build Status](https://travis-ci.org/ampaire/sendit_api.svg?branch=develop)](https://travis-ci.org/ampaire/sendit_api)
+[![Coverage Status](https://coveralls.io/repos/github/ampaire/sendit_api/badge.svg)](https://coveralls.io/github/ampaire/sendit_api)
+
 SendIt is a platform where people can make delivery orders and have them delivered for them.
 
 
