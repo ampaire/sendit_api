@@ -5,7 +5,7 @@ from functools import wraps
 from app.models import User
 from app.function import json_response
 
-def required_with_token(f):
+def token_required(f):
     @wraps(f)
     def decorated(*args, **kwags):
         token = request.args.get('token')
@@ -16,8 +16,9 @@ def required_with_token(f):
             logged_in_user = User.get_user(userId)
         except:
             return json_response('message', 'Invalid token')
+        return f(logged_in_user, *args, **kwags)
+    return decorated
 
-    return f(logged_in_user, *args, **kwags)
 
 def user_login():
     auth = request.authorization

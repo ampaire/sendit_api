@@ -82,7 +82,6 @@ class parcelOrder:
             self.pickup_location = pickup_location
             self.destination = destination
             self.description = description
-            # self.weight = weight
             self.status = "Pending"
             self.create_parcel_delivery_order()
 
@@ -100,7 +99,7 @@ class parcelOrder:
 
     def generate_price(self):
         pass
-    def create_parcel_id(self):
+    def create_parcel_order(self):
         # create a parcel
         global parcels
         global userId

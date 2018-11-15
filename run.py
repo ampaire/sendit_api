@@ -1,5 +1,5 @@
 from app.api.routes import *
-from  __init__ import app
+from  app import app
 
 
 

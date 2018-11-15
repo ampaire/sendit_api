@@ -1,7 +1,8 @@
 from flask import Flask, request, session, jsonify
 from app.models import *
-from app.api.user_authentication import required_with_token
+from app.api.user_authentication import token_required
 from app.function import json_response
+from app import users, userIds, parcelIds, parcels, oldusers
 
 @app.route('/')
 def index():
@@ -32,19 +33,18 @@ def register_new_user():
 
 
 @app.route('/api/v1/auth/logout', methods=['POST'])
-@required_with_token
+@token_required
 def logout_user(logged_in_user):
-    """This logs out user from the application"""
     request.authorization = None
     logged_in_user = None
     global users
     global userIds
-    global percels
+    global parcels
     global parcelIds
     global oldusers
     del users[:]
     del parcelIds[:]
-    del percels[:]
+    del parcels[:]
     del oldusers[:]
     del userIds[:]
     if not request.authorization:
@@ -55,7 +55,7 @@ def logout_user(logged_in_user):
 
 
 @app.route('/api/v1/parcels', methods=['POST'])
-@required_with_token
+@token_required
 def create_new_parcel_order(logged_in_user):
     """create new parcel order"""
     response = request.get_json()
@@ -66,7 +66,7 @@ def create_new_parcel_order(logged_in_user):
             destination = response['destination']
             recipient = response['recipient']
             description = response['description']
-            parcel = parcel(userId, recipient, pickup_location, destination, description)
+            parcel = parcelOrder.create_parcel_order(userId, recipient, pickup_location, destination, description)
             if parcel:
                 return json_response('message', 'Parcel order successfully created! Check all parcel orders to confirm'), 201
             else:
@@ -76,7 +76,7 @@ def create_new_parcel_order(logged_in_user):
 
 
 @app.route('/api/v1/parcels/<int:parcelId>', methods=['PUT'])
-@required_with_token
+@token_required
 def modify_parcel_order(logged_in_user, parcelId):
     """update parcel"""
     if int(parcelId) in parcelIds and parcelId is not None:
@@ -111,7 +111,7 @@ def modify_parcel_order(logged_in_user, parcelId):
 
 
 @app.route('/api/v1/parcels/<int:parcelId>', methods=['DELETE'])
-@required_with_token
+@token_required
 def delete_parcel_order(logged_in_user, parcelId):
     """delete parcel by id"""
     parcelId = int(parcelId)
@@ -128,7 +128,7 @@ def delete_parcel_order(logged_in_user, parcelId):
 
 
 @app.route('/api/v1/parcels', methods=['GET'])
-@required_with_token
+@token_required
 def get_all_parcel_orders(logged_in_user):
     """ retrieve all parcel_orders that were created"""
     if parcels:
