@@ -1,6 +1,6 @@
 import json
 import unittest
-from api.routes import *
+from app.api.routes import *
 
 
 class TestParcels(unittest.TestCase):
@@ -10,8 +10,8 @@ class TestParcels(unittest.TestCase):
         self.delivery_order = {
             "pickup_location": "kampala",
             "destination": "mbarara",
-            "recipient": "Mr. Mugisha"
-            "weight": "1.2kgs"
+            "recipient": "Mr. Mugisha",
+            "status": "Pending"
         }
 
     def test_can_add_delivery_order(self):
