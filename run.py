@@ -1,4 +1,4 @@
-from app.api.routes import all
+from app.api.routes import *
 from  __init__ import app
 
 

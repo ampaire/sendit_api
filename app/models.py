@@ -1,4 +1,3 @@
-import random
 from flask import session, request, jsonify
 from app.function import *
 from werkzeug.security import generate_password_hash, check_password_hash

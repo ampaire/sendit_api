@@ -10,7 +10,7 @@ def index():
 
 @app.route('/api/v1/auth/signup', methods=['POST'])
 def register_new_user():
-    """route ton sign up a new user to use the sendIt application"""
+    """route to sign up a new user to use the sendIt application"""
     response = request.get_json()
     if len(response.keys()) == 3:
         username = response['username']
@@ -33,29 +33,24 @@ def register_new_user():
 
 @app.route('/api/v1/auth/logout', methods=['POST'])
 @required_with_token
-def logout_user(current_user):
+def logout_user(logged_in_user):
     """This logs out user from the application"""
     request.authorization = None
-    current_user = None
+    logged_in_user = None
     global users
     global userIds
-    global reviews
     global percels
     global parcelIds
     global oldusers
     del users[:]
     del parcelIds[:]
-    del reviews[:]
-    del known_review_ids[:]
     del percels[:]
     del oldusers[:]
     del userIds[:]
     if not request.authorization:
         return json_response('message', 'You have been successfully logout'), 200
     else:
-        return json_response(
-            'message', 'Something went wrong, please try again ' +
-            str(url_for('api.logout_user', _external=True))), 400
+        return json_response('message', 'Something went wrong, please try again '), 400
 
 
 
@@ -75,9 +70,7 @@ def create_new_parcel_order(logged_in_user):
             if parcel:
                 return json_response('message', 'Parcel order successfully created! Check all parcel orders to confirm'), 201
             else:
-                return json_response(
-                    'message',
-                    'cannot create parcel with empty fields'), 400
+                return json_response('message','cannot create parcel with empty fields'), 400
     else:
         return json_response('message', 'Cannot create parcel! Some fields are empty'), 400
 

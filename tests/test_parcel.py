@@ -1,6 +1,7 @@
 import json
 import unittest
-from app.api.routes import *
+from app.main.views import *
+from app import app
 
 
 class TestParcels(unittest.TestCase):
@@ -11,7 +12,7 @@ class TestParcels(unittest.TestCase):
             "pickup_location": "kampala",
             "destination": "mbarara",
             "recipient": "Mr. Mugisha",
-            "status": "Pending"
+            "description":"It is a table of about 12kgs"
         }
 
     def test_can_add_delivery_order(self):
@@ -43,6 +44,6 @@ class TestParcels(unittest.TestCase):
         response = self.client.post('/api/v1/parcels/1',
                                     data="This is a string!",
                                     content_type='application/json')
-        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.status_code, 404)
 
     

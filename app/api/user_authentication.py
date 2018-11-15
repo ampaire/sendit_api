@@ -1,6 +1,8 @@
 import jwt
 import datetime
 from flask import Flask
+from functools import wraps
+from app.models import User
 from app.function import json_response
 
 def required_with_token(f):
@@ -11,10 +13,11 @@ def required_with_token(f):
             return json_response('message', 'the token is missing!')
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
+            logged_in_user = User.get_user(userId)
         except:
-            return json_response('message', 'Token is  invalid')
+            return json_response('message', 'Invalid token')
 
-        return f(logged_in_user, *args, **kwags)
+    return f(logged_in_user, *args, **kwags)
 
 def user_login():
     auth = request.authorization
@@ -23,3 +26,5 @@ def user_login():
 
         return json_response('token',token)
     return ({"message": "Token is incorrect! "}), 401
+
+
