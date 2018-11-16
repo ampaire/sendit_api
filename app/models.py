@@ -1,3 +1,4 @@
+import datetime
 from flask import session, request, jsonify
 from app.function import *
 from app import users, userIds, parcels, parcelIds, old_usernames
@@ -15,7 +16,7 @@ class User:
             self.username = username
             self.email = email
             self.password_hash = self.create_a_password_for_a_user(password)
-            self.create_new_user()
+            # self.create_new_user()
         else:
             raise ValueError ('some arguments seem to be empty')
    
@@ -54,7 +55,7 @@ class User:
     def login(username, password):
         for olduser in old_usernames:
             if olduser['username'] == username:
-                userId = olduser['Id']
+                userId = olduser['userId']
                 if check_password_hash(User.get_user(userId)[1], password):
                     return True
                 else:
@@ -65,7 +66,7 @@ class User:
 
     @staticmethod
     def get_userId_by_username(username):
-        for olduser in usernames:
+        for olduser in old_usernames:
             if olduser['username'] == username:
                 userId = olduser['userId']
                 return userId
@@ -75,36 +76,20 @@ class ParcelOrder:
 
     def __init__(self, userId, recipient, pickup_location, destination, description):
         if type(userId) == int and destination != '' and pickup_location != '' and  recipient!= '' and description != '':
-            self.parcelId = generate_parcel_id()
+            self.parcelId = len(parcels) + 1
             self.userId = userId
-            self.date = creation_date()
-            self.price = generate_price()
+            self.date = datetime.datetime.utcnow()
             self.recipient = recipient
             self.pickup_location = pickup_location
             self.destination = destination
             self.description = description
             self.status = "Pending"
-            self.create_parcel_delivery_order()
+            # self.create_parcel_order()
 
         else:
             raise ValueError('Some arguments seem to be empty')
 
-    def creation_date(self):
-        date_of_parcel_creation = datetime.datetime.utcnow()
-        return date_of_parcel_creation()
 
-    def generate_business_id(self):
-        # generates a business id
-        global parcelIds
-        new_id = generate_random_number()
-        if new_id not in parcelIds:
-            parcelIds.append(new_id)
-            return new_id
-        else:
-            self.generate_business_id()
-
-    def generate_price(self):
-        pass
     def create_parcel_order(self):
         # create a parcel
         global parcels
@@ -173,5 +158,4 @@ class ParcelOrder:
                     parcelIds.remove(parcelId)
                     return True
         else:
-            return False
-
+return False

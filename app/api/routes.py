@@ -16,12 +16,14 @@ def login():
     auth = request.get_json()
     username = auth.get('username')
     password = auth.get('password')
-    
+
     for user in users:
-        if not auth or not username and password:
+        if not username or not password:
             return json_response("message", "Could not verify username or password"), 401
-        user['username'] == username and user['password'] == password
-        token = create_access_token(identity={"userId":userIds,"username":usernames})
+
+        if (username == user['username'] and password == user['password']):
+            token = create_access_token(identity={"userId":userIds,"username":username})
+
         return make_response('User Token', token), 200
     return json_response("message", "Could not verify! username and password dont match"), 401
 
@@ -30,7 +32,7 @@ def login():
 @app.route('/api/v1/auth/signup', methods=['POST'])
 def register_new_user():
     """route to sign up a new user to use the sendIt application"""
-    
+
     response = request.get_json()
     if len(response.keys()) == 3:
         username = response['username']
@@ -40,9 +42,9 @@ def register_new_user():
             ) and (username != '' and email != ''
                    and password != ''):
             new_user = User(username, email, password)
-            
+
             users.append(new_user.create_new_user())
-            return json_response('message','User created')
+            return json_response('message',users)
         else:
             return json_response('message', 'Some fields are empty! '), 400
     else:
@@ -151,4 +153,4 @@ def delete_parcel_order(logged_in_user, parcelId):
         else:
             return json_response('message', 'Failed to delete! Only user can delete the parcel order')
     else:
-        return json_response('message', 'parcel id does not exist'), 404
+return json_response('message', 'parcel id does not exist'), 404
