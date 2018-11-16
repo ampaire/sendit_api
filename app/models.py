@@ -1,37 +1,38 @@
 from flask import session, request, jsonify
 from app.function import *
+from app import users, userIds, parcels, parcelIds, old_usernames
 from werkzeug.security import generate_password_hash, check_password_hash
-
-
+ 
 
 class User:
    #class to create users 
     def __init__(self, username, email, password):
-        self.userId = self.create_user_Id()
-        self.username = username
-        self.email = email
-        self.password_hash = self.create_a_password_for_a_user(password)
-        self.create_new_user()
-
-    def create_user_Id(self):
-        """generates a unique user userId for a new user"""
-        global userIds
-        if len(users) == 0:
-            formed_Id == 1,
+        if (username != '' and email != ''
+                and password != '') or (username is not None
+                                        and email is not None
+                                        and password is not None):
+            self.userId = len(users) +1
+            self.username = username
+            self.email = email
+            self.password_hash = self.create_a_password_for_a_user(password)
+            self.create_new_user()
         else:
-            formed_Id = users[-1]['userId']+1
-        return formed_Id()
+            raise ValueError ('some arguments seem to be empty')
+   
 
     def create_new_user(self):
         global users
-        global oldusers
+        global old_usernames
         new_id = self.userId
-        if self.username not in oldusers:
+        if self.username not in old_usernames:
             new_user = {}
             response = [self.username, self.password_hash, self.email]
             new_user[new_id] = response
             users.append(new_user)
-            oldusers.append({'username': self.username, 'userId': self.userId})
+            old_usernames.append({'username': self.username, 'userId': self.userId})
+        else:
+            return json_response('message', 'failed to create your account.Try again')
+        
 
 
     @staticmethod
@@ -47,13 +48,13 @@ class User:
             if userId in user.keys():
                 return user[userId]
             else:
-                return False
+                return json_response('message','User does not seem to exist')
 
     @staticmethod
     def login(username, password):
-        for olduser in oldusers:
+        for olduser in old_usernames:
             if olduser['username'] == username:
-                userId = olduser['userId']
+                userId = olduser['Id']
                 if check_password_hash(User.get_user(userId)[1], password):
                     return True
                 else:
@@ -64,12 +65,12 @@ class User:
 
     @staticmethod
     def get_userId_by_username(username):
-        for olduser in oldusers:
+        for olduser in usernames:
             if olduser['username'] == username:
                 userId = olduser['userId']
                 return userId
 
-class parcelOrder:
+class ParcelOrder:
     """ parcel class that creates a parcel for only a user that is registered """
 
     def __init__(self, userId, recipient, pickup_location, destination, description):
@@ -91,18 +92,23 @@ class parcelOrder:
     def creation_date(self):
         date_of_parcel_creation = datetime.datetime.utcnow()
         return date_of_parcel_creation()
-    def generate_parcel_id(self):
-        # generate a parcel userId
-        global userId
-        createdparcel_Id = parcels[-1][parcel]+1
-        return createdparcel_Id()
+
+    def generate_business_id(self):
+        # generates a business id
+        global parcelIds
+        new_id = generate_random_number()
+        if new_id not in parcelIds:
+            parcelIds.append(new_id)
+            return new_id
+        else:
+            self.generate_business_id()
 
     def generate_price(self):
         pass
     def create_parcel_order(self):
         # create a parcel
         global parcels
-        global userId
+        global parcelIds
         new_parcel = {}
         new_id = self.userId
         response = [
@@ -125,19 +131,19 @@ class parcelOrder:
         # authenticate that parcelId belongs to user
         global parcels
     
-        if userId == parcelOrder.get_parcel_by_id(parcelId)[0]:
-            if recipient != '' and recipient != parcelOrder.get_parcel_by_id(
+        if userId == ParcelOrder.get_parcel_by_id(parcelId)[0]:
+            if recipient != '' and recipient != ParcelOrder.get_parcel_by_id(
                     parcelId)[1]:
-                parcelOrder.get_parcel_by_id(parcelId)[1] = recipient
-            if pickup_location != '' and pickup_location != parcelOrder.get_parcel_by_id(
+                ParcelOrder.get_parcel_by_id(parcelId)[1] = recipient
+            if pickup_location != '' and pickup_location != ParcelOrder.get_parcel_by_id(
                     parcelId)[2]:
-                parcelOrder.get_parcel_by_id(parcelId)[2] = pickup_location
+                ParcelOrder.get_parcel_by_id(parcelId)[2] = pickup_location
             if destination != '' and destination != parcel.get_parcel_by_id(
                     parcelId)[3]:
-                parcelOrder.get_parcel_by_id(parcelId)[3] = destination
-            if description != '' and description != parcelOrder.get_parcel_by_id(
+                ParcelOrder.get_parcel_by_id(parcelId)[3] = destination
+            if description != '' and description != ParcelOrder.get_parcel_by_id(
                     parcelId)[4]:
-                parcelOrder.get_parcel_by_id(parcelId)[4] = description
+                ParcelOrder.get_parcel_by_id(parcelId)[4] = description
             return True
 
     @staticmethod
@@ -147,7 +153,7 @@ class parcelOrder:
         for parcel in parcels:
             for key, value in parcel.items():
                 parcel_list.append({
-                    'parcelId': key,
+                    'Id': key,
                     'userId': value[0],
                     'recipient': value[1],
                     'pickup_location': value[2],

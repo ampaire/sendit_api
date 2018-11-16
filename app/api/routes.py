@@ -1,17 +1,36 @@
-from flask import Flask, request, session, jsonify
+from flask import Flask, request, session, jsonify,make_response
 from app.models import *
 from app.api.user_authentication import token_required
 from app.function import json_response
-from app import users, userIds, parcelIds, parcels, oldusers
+from app import users, userIds, parcelIds, parcels, old_usernames
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+
 
 @app.route('/')
 def index():
     return '<h2> Welcome to sendIt. Happy browsing</h2>'
 
+@app.route('/api/v1/auth/login', methods=['POST'])
+def login():
+    #route to login a user that has an account with the app
+    auth = request.get_json()
+    username = auth.get('username')
+    password = auth.get('password')
+    
+    for user in users:
+        if not auth or not username and password:
+            return json_response("message", "Could not verify username or password"), 401
+        user['username'] == username and user['password'] == password
+        token = create_access_token(identity={"userId":userIds,"username":usernames})
+        return make_response('User Token', token), 200
+    return json_response("message", "Could not verify! username and password dont match"), 401
+
+
 
 @app.route('/api/v1/auth/signup', methods=['POST'])
 def register_new_user():
     """route to sign up a new user to use the sendIt application"""
+    
     response = request.get_json()
     if len(response.keys()) == 3:
         username = response['username']
@@ -20,20 +39,18 @@ def register_new_user():
         if (username is not None and email is not None and password is not None
             ) and (username != '' and email != ''
                    and password != ''):
-            user = User(username, email, password)
-            if user:
-                return json_response('message', 'Successfully created user ' + str(username)),201
-            else:
-                json_response('message', 'Failure creating user'), 400
+            new_user = User(username, email, password)
+            
+            users.append(new_user.create_new_user())
+            return json_response('message','User created')
         else:
             return json_response('message', 'Some fields are empty! '), 400
     else:
-        return json_response(
-            'message', 'Failed to create user, check to see whether the email, username and password fields are not empty'), 400
+        return json_response('message', 'Failed to create user, check to see whether the email, username and password fields are not empty'), 400
 
 
 @app.route('/api/v1/auth/logout', methods=['POST'])
-@token_required
+@jwt_required
 def logout_user(logged_in_user):
     request.authorization = None
     logged_in_user = None
@@ -41,11 +58,11 @@ def logout_user(logged_in_user):
     global userIds
     global parcels
     global parcelIds
-    global oldusers
+    global usernames
     del users[:]
     del parcelIds[:]
     del parcels[:]
-    del oldusers[:]
+    del usernames[:]
     del userIds[:]
     if not request.authorization:
         return json_response('message', 'You have been successfully logout'), 200
@@ -55,18 +72,19 @@ def logout_user(logged_in_user):
 
 
 @app.route('/api/v1/parcels', methods=['POST'])
-@token_required
+@jwt_required
 def create_new_parcel_order(logged_in_user):
     """create new parcel order"""
+    current_user = get_jwt_identity()
     response = request.get_json()
     if response:
         if (len(response.keys()) == 4):
-            userId = int(User.get_userId_by_username(logged_in_user[0]))
+            userId = current_user['userId']
             pickup_location = response['pickup_location']
             destination = response['destination']
             recipient = response['recipient']
             description = response['description']
-            parcel = parcelOrder.create_parcel_order(userId, recipient, pickup_location, destination, description)
+            parcel = parcel_object.create_parcel_order(userId, recipient, pickup_location, destination, description)
             if parcel:
                 return json_response('message', 'Parcel order successfully created! Check all parcel orders to confirm'), 201
             else:
@@ -74,9 +92,18 @@ def create_new_parcel_order(logged_in_user):
     else:
         return json_response('message', 'Cannot create parcel! Some fields are empty'), 400
 
+@app.route('/api/v1/parcels', methods=['GET'])
+@jwt_required
+def get_all_parcel_orders(logged_in_user):
+    """ get all parcel_orders that were created"""
+    if parcels:
+        return jsonify('parcels', parcel_object.get_all_parcel_orders()), 200
+    else:
+        return json_response('message', 'No data to display. Create a delivery order'), 404
+
 
 @app.route('/api/v1/parcels/<int:parcelId>', methods=['PUT'])
-@token_required
+@jwt_required
 def modify_parcel_order(logged_in_user, parcelId):
     """update parcel"""
     if int(parcelId) in parcelIds and parcelId is not None:
@@ -99,7 +126,7 @@ def modify_parcel_order(logged_in_user, parcelId):
         else:
             description = ''
         userId = int(User.get_userId_by_username(logged_in_user[0]))
-        command = parcelOrder.modify_parcel(userId, parcelId, recipient, pickup_location,
+        command = ParcelOrder.modify_parcel(userId, parcelId, recipient, pickup_location,
                                           destination, description)
         if command:
             return json_response(
@@ -111,27 +138,17 @@ def modify_parcel_order(logged_in_user, parcelId):
 
 
 @app.route('/api/v1/parcels/<int:parcelId>', methods=['DELETE'])
-@token_required
+@jwt_required
 def delete_parcel_order(logged_in_user, parcelId):
     """delete parcel by id"""
     parcelId = int(parcelId)
     if parcelId in parcelIds:
-        parcel_to_cancel = parcel.get_parcel_by_id(parcelId)
+        parcel_to_cancel = ParcelOrder.get_parcel_by_id(parcelId)
         userId = int(User.get_userId_by_username(logged_in_user[0]))
-        command = parcel.delete_parcel_order(userId, parcelId)
+        command = ParcelOrder.delete_parcel(userId, parcelId)
         if command:
             return json_response('message','successfully deleted parcel delivery order' + int(parcelId)), 200
         else:
             return json_response('message', 'Failed to delete! Only user can delete the parcel order')
     else:
         return json_response('message', 'parcel id does not exist'), 404
-
-
-@app.route('/api/v1/parcels', methods=['GET'])
-@token_required
-def get_all_parcel_orders(logged_in_user):
-    """ retrieve all parcel_orders that were created"""
-    if parcels:
-        return jsonify('parcels', parcel.get_all_parcel_orders()), 200
-    else:
-        return json_response('message', 'No data to display. Create a delivery order'), 404
