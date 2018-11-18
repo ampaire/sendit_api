@@ -9,7 +9,7 @@ install:
 
 
 # command to run tests
-script: pytest
+script: pytest --cov
 
 after_success:
   - coveralls
