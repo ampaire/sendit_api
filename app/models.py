@@ -16,7 +16,7 @@ class User:
             self.username = username
             self.email = email
             self.password_hash = self.create_a_password_for_a_user(password)
-            # self.create_new_user()
+            
         else:
             raise ValueError ('some arguments seem to be empty')
    
@@ -30,12 +30,10 @@ class User:
             response = [self.username, self.password_hash, self.email]
             new_user[new_id] = response
             users.append(new_user)
-            old_usernames.append({'username': self.username, 'userId': self.userId})
+            old_usernames.append({'username': self.username, 'Id': self.userId})
         else:
             return json_response('message', 'failed to create your account.Try again')
         
-
-
     @staticmethod
     def create_a_password_for_a_user(password):        
         return generate_password_hash(password)
@@ -48,28 +46,27 @@ class User:
         for user in users:
             if userId in user.keys():
                 return user[userId]
-            else:
-                return json_response('message','User does not seem to exist')
 
     @staticmethod
     def login(username, password):
-        for olduser in old_usernames:
-            if olduser['username'] == username:
-                userId = olduser['userId']
-                if check_password_hash(User.get_user(userId)[1], password):
+        for username in old_usernames:
+            if user['username'] == username:
+                userId = user['Id']
+                if check_password_hash(User.get_user(userId), password):
                     return True
                 else:
                     return False
-            else:
-                return json_response('message', 'Check to make sure your login details are matching')
-
 
     @staticmethod
     def get_userId_by_username(username):
-        for olduser in old_usernames:
-            if olduser['username'] == username:
-                userId = olduser['userId']
+        for username in old_usernames:
+            if user['username'] == username:
+                userId = user['Id']
                 return userId
+
+    @staticmethod
+    def logout ():
+        return True
 
 class ParcelOrder:
     """ parcel class that creates a parcel for only a user that is registered """
@@ -84,8 +81,6 @@ class ParcelOrder:
             self.destination = destination
             self.description = description
             self.status = "Pending"
-            # self.create_parcel_order()
-
         else:
             raise ValueError('Some arguments seem to be empty')
 
@@ -150,12 +145,13 @@ class ParcelOrder:
     @staticmethod
     def delete_parcel(userId, parcelId):
         # delete a parcel by userId if you are its owner
+        global parcelIds
         global parcels
-        if userId == parcel.get_parcel_by_id(parcelId)[0]:
+        if userId == ParcelOrder.get_parcel_by_id(Id)[0]:
             for parcel in parcels:
                 if parcelId in parcel.keys():
                     parcels.remove(parcel)
                     parcelIds.remove(parcelId)
                     return True
         else:
-return False
+            return False

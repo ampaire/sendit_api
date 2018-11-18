@@ -11,16 +11,19 @@ from app.function import json_response
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        """ checks token and creates a current_user object with users information"""
+        token = None
+        if 'access-token' in request.headers:
+            token = request.headers['access-token']
         if not token:
-            return json_response('message ','Token is missing'), 401
+            return json_response('message ', 'Unauthorized access! Token missing'), 401
         try:
-            response = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = User.get_user(userId= response['Id'])
+            data = jwt.decode(token, app.config['SECRET_KEY'])
+            current_user = User.get_user(userId=data['Id'])
         except:
             return json_response('message', 'Token is invalid'), 401
-        return f(*args, **kwargs)
+        return f(current_user, *args, **kwargs)
 
     return decorated
-
 
 
