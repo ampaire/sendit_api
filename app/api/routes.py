@@ -1,10 +1,10 @@
-from flask import Flask, request, session, jsonify,make_response, url_for
+
+from flask import Flask, request, session, jsonify, make_response, url_for
 from app.models import *
 from app.api.user_authentication import token_required
 from app.function import json_response
 from functools import wraps
 from app import users, userIds, parcelIds, parcels, old_usernames
-
 
 
 @app.route('/')
@@ -15,7 +15,7 @@ def index():
 @app.route('/api/v1/auth/signup', methods=['POST'])
 def register_new_user():
     """route to sign up a new user to use the sendIt application"""
-    
+
     response = request.get_json()
     if len(response.keys()) == 3:
         username = response['username']
@@ -37,16 +37,8 @@ def register_new_user():
         return json_response(
             'message', 'Could not create user, some fields missing'), 400
 
-@app.route('/api/v1/auth/login', methods=['POST'])
-def user_login():
-    """ This logs in a registered user into system and creates a unique token for them"""
-    auth = request.authorization
-    if auth and auth.password == 'password':
-        token = jwt.encode({'user':auth.username, 'exp': datetime.datetime.utcnow()
-                + datetime.timedelta(minutes= 30)}, app.config['SECRET_KEY'])
 
-        return json_response('token', token.decode('UTF-8'))
-    return json_response('message','Credentials do not match.Sign up instead')
+
 
 @app.route('/api/v1/auth/logout', methods=['POST'])
 @token_required
@@ -69,7 +61,6 @@ def logout_user(current_user):
         return json_response('message', 'Something went wrong, please try again '), 400
 
 
-
 @app.route('/api/v1/parcels', methods=['POST'])
 @token_required
 def create_new_parcel_order(current_user):
@@ -77,19 +68,21 @@ def create_new_parcel_order(current_user):
     response = request.get_json()
     if response:
         if (len(response.keys()) == 4):
-            userId =User.get_userId_by_username(current_user[0])
+            userId = User.get_userId_by_username(current_user[0])
             pickup_location = response['pickup_location']
             destination = response['destination']
             recipient = response['recipient']
             description = response['description']
-            parcel = ParcelOrder(userId, recipient, pickup_location, destination, description)
+            parcel = ParcelOrder(
+                userId, recipient, pickup_location, destination, description)
             if parcel:
-                return json_response('message', 'Parcel order'+ int(parcelId)
-                + ' successfully created! Check all parcel orders to confirm'), 201
+                return json_response('message', 'Parcel order' + int(parcelId)
+                                     + ' successfully created! Check all parcel orders to confirm'), 201
             else:
-                return json_response('message','cannot create parcel with empty fields'), 400
+                return json_response('message', 'cannot create parcel with empty fields'), 400
     else:
         return json_response('message', 'Cannot create parcel! Some fields are empty'), 400
+
 
 @app.route('/api/v1/parcels', methods=['GET'])
 @token_required
@@ -98,7 +91,7 @@ def get_all_parcel_orders(current_user):
     if parcels:
         return jsonify('parcels', parcel_object.get_all_parcel_orders()), 200
     else:
-        return json_response('message', 'No data to display. Create a delivery order'), 404
+        return json_response('message', 'No response to display. Create a delivery order'), 404
 
 
 @app.route('/api/v1/parcels/<int:parcelId>', methods=['PUT'])
@@ -126,7 +119,7 @@ def modify_parcel_order(current_user, parcelId):
             description = ''
         userId = int(User.get_userId_by_username(current_user[0]))
         command = ParcelOrder.modify_parcel(userId, parcel_Id, recipient, pickup_location,
-                                          destination, description)
+                                            destination, description)
         if command:
             return json_response(
                 'message', 'successfully updated parcel order ' + int(parcelId)), 201
@@ -146,7 +139,7 @@ def delete_parcel_order(current_user, parcelId):
         userId = int(User.get_userId_by_username(current_user[0]))
         command = ParcelOrder.delete_parcel(userId, parcel_Id)
         if command:
-            return json_response('message','successfully deleted parcel delivery order' + int(parcelId)), 200
+            return json_response('message', 'successfully deleted parcel delivery order' + int(parcelId)), 200
         else:
             return json_response('message', 'Failed to delete! Try again later')
     else:

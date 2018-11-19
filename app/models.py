@@ -3,23 +3,22 @@ from flask import session, request, jsonify
 from app.function import *
 from app import users, userIds, parcels, parcelIds, old_usernames
 from werkzeug.security import generate_password_hash, check_password_hash
- 
+
 
 class User:
-   #class to create users 
+   # class to create users
     def __init__(self, username, email, password):
         if (username != '' and email != ''
                 and password != '') or (username is not None
                                         and email is not None
                                         and password is not None):
-            self.userId = len(users) +1
+            self.userId = len(users) + 1
             self.username = username
             self.email = email
             self.password_hash = self.create_a_password_for_a_user(password)
-            
+
         else:
-            raise ValueError ('some arguments seem to be empty')
-   
+            raise ValueError('some arguments seem to be empty')
 
     def create_new_user(self):
         global users
@@ -30,15 +29,16 @@ class User:
             response = [self.username, self.password_hash, self.email]
             new_user[new_id] = response
             users.append(new_user)
-            old_usernames.append({'username': self.username, 'Id': self.userId})
+            old_usernames.append(
+                {'username': self.username, 'Id': self.userId})
         else:
             return json_response('message', 'failed to create your account.Try again')
-        
+
     @staticmethod
-    def create_a_password_for_a_user(password):        
+    def create_a_password_for_a_user(password):
         return generate_password_hash(password)
 
-    def verify_password(self, password):        
+    def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
@@ -64,15 +64,17 @@ class User:
                 userId = user['Id']
                 return userId
 
+
     @staticmethod
-    def logout ():
+    def logout():
         return True
+
 
 class ParcelOrder:
     """ parcel class that creates a parcel for only a user that is registered """
 
     def __init__(self, userId, recipient, pickup_location, destination, description):
-        if type(userId) == int and destination != '' and pickup_location != '' and  recipient!= '' and description != '':
+        if type(userId) == int and destination != '' and pickup_location != '' and recipient != '' and description != '':
             self.parcelId = len(parcels) + 1
             self.userId = userId
             self.date = datetime.datetime.utcnow()
@@ -83,7 +85,6 @@ class ParcelOrder:
             self.status = "Pending"
         else:
             raise ValueError('Some arguments seem to be empty')
-
 
     def create_parcel_order(self):
         # create a parcel
@@ -110,7 +111,7 @@ class ParcelOrder:
     def modify_parcel(userId, parcelId, recipient='', pickup_location='', destination='', description=''):
         # authenticate that parcelId belongs to user
         global parcels
-    
+
         if userId == ParcelOrder.get_parcel_by_id(parcelId)[0]:
             if recipient != '' and recipient != ParcelOrder.get_parcel_by_id(
                     parcelId)[1]:
